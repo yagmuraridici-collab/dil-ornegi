@@ -1,0 +1,696 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Türkçe Dil Örneği Analizi</title>
+<meta name="theme-color" content="#1d5d8a">
+<meta name="description" content="Türkçe dil örneği analizi: OSU, sözcük çeşitliliği ve ek dağılımı.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Dil Örneği">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@400;600&family=Literata:opsz,wght@7..72,500;7..72,700&display=swap">
+<style>
+/* Layout: two-panel clinical worksheet — transcript on the left, live analysis on the right; morpheme boundaries are the one warm accent. */
+:root{
+  --bg:#eef3f6; --surface:#ffffff; --sunk:#f6f9fb; --fg:#13202a; --muted:#5a6b78; --line:#d3dde4;
+  --accent:#1d5d8a; --accent-soft:#dcebf5; --mark:#b86a0b; --mark-soft:#fbecd5; --warn:#9b3b2f; --warn-soft:#f7e1dd;
+  --f-display:"Literata", Georgia, "Times New Roman", serif;
+  --f-body:"Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e161c; --surface:#15212a; --sunk:#111b22; --fg:#e3ebf0; --muted:#93a5b2; --line:#26363f;
+  --accent:#73b3df; --accent-soft:#1a3346; --mark:#f0b154; --mark-soft:#3a2a12; --warn:#ef9a8c; --warn-soft:#3a1f1b; color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#0e161c; --surface:#15212a; --sunk:#111b22; --fg:#e3ebf0; --muted:#93a5b2; --line:#26363f;
+  --accent:#73b3df; --accent-soft:#1a3346; --mark:#f0b154; --mark-soft:#3a2a12; --warn:#ef9a8c; --warn-soft:#3a1f1b; color-scheme:dark;}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.5;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-top:calc(20px + env(safe-area-inset-top, 0px));padding-bottom:calc(48px + env(safe-area-inset-bottom, 0px));margin:0;-webkit-text-size-adjust:100%}
+.wrap{max-width:1240px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+header{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line);padding-bottom:14px}
+h1{font-family:var(--f-display);font-weight:700;font-size:clamp(1.5rem,3.2vw,2.1rem);margin:0;letter-spacing:-.01em;text-wrap:balance}
+h1 .seg{color:var(--mark)}
+.sub{color:var(--muted);margin:4px 0 0;max-width:62ch}
+h2{font-family:var(--f-display);font-weight:500;font-size:1.15rem;margin:0}
+.label{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:20px;align-items:start}
+@media (max-width:920px){.grid{grid-template-columns:minmax(0,1fr)}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media (max-width:480px){.fields{grid-template-columns:minmax(0,1fr)}}
+.field{display:flex;flex-direction:column;gap:4px}
+input,textarea{font:inherit;color:var(--fg);background:var(--sunk);border:1px solid var(--line);border-radius:6px;padding:8px 10px;width:100%}
+input:focus-visible,textarea:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+textarea{font-family:var(--f-mono);font-size:.88rem;line-height:1.7;min-height:420px;resize:vertical;tab-size:2}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+button{font:inherit;font-weight:700;border-radius:6px;padding:8px 14px;cursor:pointer;border:1px solid var(--line);background:var(--surface);color:var(--fg)}
+button:hover{border-color:var(--accent)}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+button.primary:hover{filter:brightness(1.08)}
+button.ghost{border-color:transparent;background:transparent;color:var(--muted);padding-inline:8px}
+.pill{font-size:.72rem;font-weight:700;letter-spacing:.04em;padding:2px 8px;border-radius:99px;background:var(--mark-soft);color:var(--mark)}
+details.rules{background:var(--sunk);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+details.rules summary{cursor:pointer;font-weight:700}
+.rules dl{display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px 14px;margin:10px 0 2px}
+.rules dt{font-family:var(--f-mono);font-size:.85rem;color:var(--accent);white-space:nowrap}
+.rules dd{margin:0;color:var(--muted)}
+.toast{display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:var(--mark-soft);color:var(--fg);border-radius:8px;padding:8px 12px;font-size:.9rem}
+/* results */
+.metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+@media (max-width:480px){.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.metric{background:var(--surface);padding:12px 14px;display:flex;flex-direction:column;gap:2px}
+.metric .v{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:1.45rem;font-weight:600}
+.metric.hero{background:var(--accent-soft)}
+.metric.hero .v{color:var(--accent);font-size:1.9rem}
+.metric .n{font-size:.8rem;color:var(--muted)}
+.note{font-size:.82rem;color:var(--muted);margin:0}
+.chart svg{width:100%;height:auto;display:block}
+table{width:100%;border-collapse:collapse;font-size:.9rem}
+th{text-align:left;font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:700;padding:6px 8px;border-bottom:1px solid var(--line)}
+td{padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+td.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.bar{height:6px;border-radius:3px;background:var(--accent);opacity:.75;margin-top:6px}
+.ex{font-family:var(--f-mono);font-size:.8rem;color:var(--muted)}
+.tablewrap{overflow-x:auto}
+.utts{display:flex;flex-direction:column;gap:0;max-height:520px;overflow-y:auto;border:1px solid var(--line);border-radius:8px}
+.utt{display:grid;grid-template-columns:2.2rem minmax(0,1fr) auto;gap:10px;padding:8px 12px;border-bottom:1px solid var(--line);align-items:baseline}
+.utt:last-child{border-bottom:0}
+.utt .i{font-family:var(--f-mono);font-size:.78rem;color:var(--muted);text-align:right}
+.utt .t{font-family:var(--f-mono);font-size:.9rem;overflow-wrap:anywhere}
+.utt .c{font-family:var(--f-mono);font-size:.78rem;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+.utt.out .t{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--line)}
+.utt .why{display:block;font-family:var(--f-body);font-size:.75rem;color:var(--warn);text-decoration:none}
+.w{white-space:nowrap}
+.b{color:var(--mark);font-weight:600;padding:0 1px}
+.sug{background:var(--mark-soft);border-radius:3px;padding:0 2px}
+.maze{color:var(--muted);font-style:italic}
+.unk{color:var(--warn);font-weight:600}
+.adult{color:var(--muted);font-size:.82rem;font-style:italic}
+.empty{color:var(--muted);padding:20px;text-align:center}
+.audio{background:var(--sunk);border:1px solid var(--line);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:10px}
+.drop{display:flex;flex-wrap:wrap;gap:10px;align-items:center;border:1px dashed var(--line);border-radius:6px;padding:10px}
+.drop.over{border-color:var(--accent);background:var(--accent-soft)}
+.player{display:flex;flex-direction:column;gap:10px}
+.time{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:.85rem;color:var(--muted)}
+.speed{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.speed button{border:0;border-radius:0;padding:6px 10px;font-family:var(--f-mono);font-weight:600;font-size:.82rem;background:var(--surface);color:var(--muted)}
+.speed button[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent)}
+input[type=range]{padding:0;background:transparent;border:0;accent-color:var(--accent)}
+.check{display:inline-flex;gap:6px;align-items:center;font-size:.88rem;color:var(--muted)}
+.check input{width:auto}
+kbd{font-family:var(--f-mono);font-size:.78rem;border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:0 5px;background:var(--surface);color:var(--fg)}
+button.recording{background:var(--warn);border-color:var(--warn);color:var(--surface)}
+.recstate{font-family:var(--f-mono);font-size:.85rem;color:var(--warn);font-variant-numeric:tabular-nums}
+a.btnlink{font-weight:700;color:var(--accent);text-decoration:none;border:1px solid var(--line);border-radius:6px;padding:8px 14px;background:var(--surface)}
+@media (pointer:coarse){button,a.btnlink{min-height:44px}.speed button{min-height:40px}}
+@media (max-width:600px){textarea{min-height:300px;font-size:16px}input{font-size:16px}}
+footer{color:var(--muted);font-size:.8rem;max-width:80ch}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Türkçe Dil Örneği <span class="seg">Anali-z-i</span></h1>
+      <p class="sub">Dökümü yapıştırın, ek sınırlarını tire ile işaretleyin. OSU, sözcük çeşitliliği ve ek dağılımı siz yazdıkça hesaplanır.</p>
+    </div>
+    <div class="row">
+      <span class="pill" id="samplePill">Örnek döküm yüklü</span>
+      <button class="primary" id="copyBtn" type="button">Raporu kopyala</button>
+    </div>
+  </header>
+
+  <div class="grid">
+    <section class="panel" aria-label="Döküm">
+      <div class="fields">
+        <div class="field"><label class="label" for="fCode">Danışan kodu</label><input id="fCode" placeholder="ör. D-014"></div>
+        <div class="field"><label class="label" for="fAge">Yaş (yıl;ay)</label><input id="fAge" placeholder="ör. 4;6"></div>
+        <div class="field"><label class="label" for="fDate">Kayıt tarihi</label><input id="fDate" type="date"></div>
+        <div class="field"><label class="label" for="fCtx">Bağlam</label><input id="fCtx" placeholder="ör. resim anlatma, serbest oyun"></div>
+      </div>
+
+      <div class="audio" id="audioBox">
+        <div class="row" style="justify-content:space-between">
+          <span class="label">Ses kaydı</span>
+          <span class="note" id="audioName">Dosya seçilmedi</span>
+        </div>
+        <div class="drop" id="drop">
+          <input type="file" id="fAudio" accept="audio/*,video/mp4,.m4a,.mp3,.wav,.ogg,.opus,.aac,.webm,.flac" hidden>
+          <button type="button" class="primary" id="recBtn">● Kaydet</button>
+          <button type="button" id="pickAudio">Ses dosyası aç</button>
+          <span class="recstate" id="recState" aria-live="polite"></span>
+          <span class="note">Kayıt ve dosyalar bu cihazdan çıkmaz.</span>
+        </div>
+        <div id="player" class="player" hidden>
+          <audio id="au" preload="metadata"></audio>
+          <div class="row transport">
+            <button type="button" id="back" aria-label="3 saniye geri">−3 sn</button>
+            <button type="button" class="primary" id="play">Oynat</button>
+            <button type="button" id="fwd" aria-label="3 saniye ileri">+3 sn</button>
+            <span class="time" id="time">0:00 / 0:00</span>
+            <span class="speed" role="group" aria-label="Oynatma hızı">
+              <button type="button" data-rate="0.5" aria-pressed="false">0,5×</button>
+              <button type="button" data-rate="0.75" aria-pressed="false">0,75×</button>
+              <button type="button" data-rate="1" aria-pressed="true">1×</button>
+            </span>
+          </div>
+          <input type="range" id="seek" min="0" max="1000" value="0" aria-label="Kayıtta konum">
+          <div class="row">
+            <button type="button" id="insC">+ Ç: satırı</button>
+            <button type="button" id="insT">+ T: satırı</button>
+            <label class="check"><input type="checkbox" id="autoBack" checked> Duraklatınca 2 sn geri sar</label>
+          </div>
+          <div class="row"><a class="btnlink" id="dlAudio" href="#" download>Kaydı cihaza indir</a></div>
+          <p class="note">Döküm kutusunda yazarken <kbd>Esc</kbd> kaydı oynatır ya da duraklatır (klavye bağlıysa). Uygulama son kaydı hatırlar; yeni kayıt öncekinin yerini alır, saklamak için önce indirin.</p>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="row" style="justify-content:space-between">
+          <label class="label" for="tx">Döküm — her satır bir söyleyiş</label>
+          <span class="note" id="lineInfo"></span>
+        </div>
+        <textarea id="tx" spellcheck="false" autocomplete="off"></textarea>
+      </div>
+
+      <div id="toast" class="toast" hidden></div>
+
+      <div class="row">
+        <button class="primary" id="sugBtn" type="button">Ek sınırlarını öner</button>
+        <button id="sampleBtn" type="button">Örneği yükle</button>
+        <button class="ghost" id="clearBtn" type="button">Temizle</button>
+      </div>
+
+      <details class="rules">
+        <summary>Yazım kuralları</summary>
+        <dl>
+          <dt>Ç: …</dt><dd>Çocuğun söyleyişi. Ön ek yoksa satır çocuğa ait sayılır.</dd>
+          <dt>T: / Y: / A:</dt><dd>Terapist, yetişkin, anne. Gösterilir, analize girmez.</dd>
+          <dt>ev-de git-ti-m</dt><dd>Tire = ek sınırı. Her parça bir biçimbirim sayılır.</dd>
+          <dt>Ali'ye</dt><dd>Kesme işareti de ek sınırı sayılır.</dd>
+          <dt>X</dt><dd>Anlaşılmayan sözcük. Bu söyleyiş OSU dışında kalır.</dd>
+          <dt>( … )</dt><dd>Ara dolgu, tekrar, düzeltme. Sayıma girmez.</dd>
+          <dt># …</dt><dd>Not satırı. Yok sayılır.</dd>
+        </dl>
+      </details>
+    </section>
+
+    <section class="panel" aria-label="Analiz">
+      <div class="row" style="justify-content:space-between"><h2>Özet</h2><span class="note" id="countNote"></span></div>
+      <div class="metrics" id="metrics"></div>
+      <p class="note">OSU yalnızca anlaşılır ve tamamlanmış çocuk söyleyişlerinden hesaplanır. Türkçe için yaşa göre başvuru değerleri ayrıca yorumlanmalıdır.</p>
+
+      <div class="chart">
+        <div class="label" style="margin-bottom:6px">Söyleyiş uzunluğu dağılımı (biçimbirim)</div>
+        <div id="chart"></div>
+      </div>
+
+      <div>
+        <div class="label" style="margin-bottom:6px">Ek dağılımı</div>
+        <div class="tablewrap"><table id="sufTable"></table></div>
+      </div>
+
+      <div>
+        <div class="row" style="justify-content:space-between;margin-bottom:6px">
+          <span class="label">Söyleyişler</span>
+          <span class="note"><span class="b">·</span> ek sınırı &nbsp; <span class="sug">vurgulu</span> = önerildi, kontrol edin</span>
+        </div>
+        <div class="utts" id="utts"></div>
+      </div>
+    </section>
+  </div>
+
+  <footer>Ek önerisi kural tabanlı bir tahmindir ve hata yapabilir (ör. kök ile ek karışabilir). Klinik kullanımdan önce her öneriyi kontrol edin. Döküm, danışan bilgileri ve son ses kaydı yalnızca bu cihazda saklanır; hiçbir sunucuya gönderilmez.</footer>
+</div>
+
+<script>
+(function(){
+"use strict";
+const SAMPLE = `# Örnek döküm: resim anlatma (kurgusal veri)
+T: Bu resimde neler oluyor?
+Ç: kedi ağac-a çık-mış.
+Ç: köpek hav hav yap-ıyor.
+T: Peki çocuk ne yapıyor?
+Ç: çocuk ağl-ıyor.
+Ç: (o şey) o top-u-nu kaybet-ti.
+Ç: anne-si gel-ecek.
+Ç: ben de ev-de kedi-m var.
+Ç: X kaç-tı.
+Ç: araba.
+Ç: kırmızı araba hızlı gid-iyor.
+T: Sonra ne olmuş?
+Ç: sonra düş-tü.
+Ç: bacağ-ı-nı acıt-tı.
+Ç: doktor-a git-ti-ler.
+Ç: oyun oyna-mak ist-iyor-um.
+Ç: bu ne?
+Ç: kuş-lar uç-uyor.
+Ç: bak.
+Ç: ben de bisiklet-e bin-di-m.
+Ç: kuşlar ağaçtan uçtular.`;
+
+const $ = id => document.getElementById(id);
+const tx = $('tx');
+const fields = ['fCode','fAge','fDate','fCtx'];
+const STORE = 'doa-taslak-v1';
+let suggested = new Set();
+let undoText = null;
+let lastResult = null;
+
+const lc = s => s.toLocaleLowerCase('tr-TR');
+const VOW = 'aeıioöuü';
+const isV = c => VOW.includes(c);
+const fmt = (x,d=2) => (isFinite(x)? x.toLocaleString('tr-TR',{minimumFractionDigits:d,maximumFractionDigits:d}) : '—');
+const esc = s => s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* ---------- parsing ---------- */
+const CHILD = new Set(['Ç','C','ÇOC','ÇOCUK','CHI','*CHI','D','DAN']);
+function parseLine(line){
+  const t = line.trim();
+  if(!t || t.startsWith('#')) return null;
+  const m = t.match(/^(\*?[A-Za-zÇĞİÖŞÜçğıöşü]{1,6})\s*:\s*(.*)$/);
+  if(m){
+    const code = m[1].toLocaleUpperCase('tr-TR');
+    return {speaker: CHILD.has(code)?'child':'adult', code:m[1], content:m[2], prefix: t.slice(0, t.length - m[2].length)};
+  }
+  return {speaker:'child', code:'', content:t, prefix:''};
+}
+const TOKEN_RE = /[A-Za-zÇĞİÖŞÜçğıöşüÂÎÛâîû'’\-]+/g;
+
+function analyzeUtt(content){
+  let mazes = 0, mazeText = [];
+  const clean = content.replace(/\(([^)]*)\)/g, (_,inner)=>{ mazes++; mazeText.push(inner.trim()); return ' '; });
+  const words = [];
+  (clean.match(TOKEN_RE) || []).forEach(tok=>{
+    const w = tok.replace(/^[-'’]+|[-'’]+$/g,'');
+    if(!w) return;
+    if(/^x+$/i.test(w)){ words.push({raw:w, unk:true, segs:[w]}); return; }
+    const segs = lc(w).split(/[-'’]+/).filter(Boolean);
+    words.push({raw:w, unk:false, segs});
+  });
+  const unk = words.some(w=>w.unk);
+  const nWords = words.length;
+  const nMorph = words.reduce((a,w)=>a+(w.unk?1:w.segs.length),0);
+  let reason = '';
+  if(!nWords) reason = 'Sözcük yok';
+  else if(unk) reason = 'Anlaşılmayan sözcük içeriyor';
+  return {content, words, mazes, mazeText, nWords, nMorph, included: !reason, reason};
+}
+
+/* ---------- suffix categories ---------- */
+const CAT = {
+  'lAr':'Çoğul -lAr','DI':'Görülen geçmiş -DI','Iyor':'Şimdiki zaman -(I)yor','yor':'Şimdiki zaman -(I)yor',
+  'AcAk':'Gelecek zaman -(y)AcAk','yAcAk':'Gelecek zaman -(y)AcAk','mIş':'Duyulan geçmiş -mIş',
+  'Ir':'Geniş zaman -(I)r / -Ar','Ar':'Geniş zaman -(I)r / -Ar','r':'Geniş zaman -(I)r / -Ar',
+  'DA':'Bulunma hâli -DA','DAn':'Ayrılma hâli -DAn','A':'Yönelme hâli -(y)A','yA':'Yönelme hâli -(y)A',
+  'I':'Belirtme hâli / iyelik -(y)I','yI':'Belirtme hâli / iyelik -(y)I','nI':'Belirtme hâli -nI',
+  'sI':'3. tekil iyelik -(s)I','In':'İlgi hâli / 2. tekil iyelik -(n)In','nIn':'İlgi hâli / 2. tekil iyelik -(n)In',
+  'lArI':'3. çoğul iyelik -lArI','Im':'1. tekil kişi/iyelik -(I)m','m':'1. tekil kişi/iyelik -(I)m',
+  'n':'2. tekil kişi -n','sIn':'2. tekil kişi -sIn','k':'1. çoğul kişi -k','Iz':'1. çoğul kişi -(y)Iz','yIz':'1. çoğul kişi -(y)Iz',
+  'nIz':'2. çoğul -(I)nIz','InIz':'2. çoğul -(I)nIz','sInIz':'2. çoğul -(I)nIz',
+  'mAk':'Mastar -mAk','mA':'Olumsuzluk / ad-fiil -mA','mI':'Soru eki -mI','sA':'Şart -sA','mAlI':'Gereklilik -mAlI',
+  'yAbIl':'Yeterlilik -(y)Abil','AbIl':'Yeterlilik -(y)Abil','ylA':'Araç / birliktelik -(y)lA','lA':'Araç / birliktelik -(y)lA',
+  'kI':'-ki','lI':'Sahiplik -lI','sIz':'Yoksunluk -sIz','CI':'Meslek/uğraş -CI','CA':'Eşitlik -CA','DIk':'Ortaç -DIk'
+};
+function canon(seg){
+  let c = seg.replace(/ğ/g,'k').replace(/[ıiuü]/g,'I').replace(/[ae]/g,'A');
+  if(/^[dt]/.test(c)) c = 'D' + c.slice(1);
+  if(/^[cç]/.test(c)) c = 'C' + c.slice(1);
+  return CAT[c] || ('Diğer -' + seg);
+}
+
+/* ---------- rule-based morpheme boundary suggestion ---------- */
+const EXC = new Set(['kendi','şimdi','değil','hindi','neden','beden','birden','dünya','hadi','haydi','dede','nine','abla','anne','baba','teyze','hala','oda','ninni','evet','tamam','yine','gene','bile','gibi','için','sonra','önce','daha','kadın','bugün','yarın','iyi','güzel','büyük','küçük','hediye','sade','mide','perde','panda','kamış','kedi','masa','tabii','şimdiki','orada','burada','şurada','nerede']);
+const BACKV='aıou', VOICELESS='fstkçşhp';
+function lastVowel(s){ for(let i=s.length-1;i>=0;i--) if(isV(s[i])) return s[i]; return null; }
+function harmonyOK(stem,suf){
+  const sv = [...suf].find(isV); if(!sv || sv==='o') return true;
+  const lv = lastVowel(stem); if(!lv) return true;
+  if(sv==='a'||sv==='e') return (sv==='a') === BACKV.includes(lv);
+  const map={a:'ı',ı:'ı',o:'u',u:'u',e:'i',i:'i',ö:'ü',ü:'ü'};
+  return map[lv]===sv;
+}
+function fits(stem,suf,minStem){
+  if(stem.length < minStem || !lastVowel(stem)) return false;
+  if(!harmonyOK(stem,suf)) return false;
+  const last = stem[stem.length-1], f = suf[0];
+  if(f==='t' && !VOICELESS.includes(last)) return false;
+  if(f==='d' && VOICELESS.includes(last)) return false;
+  if(f==='y' && !isV(last)) return false;
+  if(f==='n' && !isV(last)) return false;
+  if(isV(f) && isV(last)) return false;
+  return true;
+}
+const byLen = a => a.sort((x,y)=>y.length-x.length);
+const TENSE = byLen(['yacak','yecek','yacağ','yeceğ','ıyor','iyor','uyor','üyor','acak','ecek','acağ','eceğ','mış','miş','muş','müş','yor','dı','di','du','dü','tı','ti','tu','tü']);
+const PERSON = byLen(['ım','im','um','üm','sın','sin','sun','sün','ız','iz','uz','üz','lar','ler','m','n','k']);
+const CASES = byLen(['nın','nin','nun','nün','dan','den','tan','ten','yla','yle','da','de','ta','te','ya','ye','yı','yi','yu','yü','nı','ni','nu','nü']);
+const TENSE_END = /(ıyor|iyor|uyor|üyor|yor|acağ|eceğ|yacağ|yeceğ|acak|ecek|m[ıiuü]ş|[dt][ıiuü])$/;
+
+function suggest(word){
+  const w = lc(word);
+  if(/[-'’]/.test(w) || w.length < 4 || EXC.has(w) || /[^a-zçğıöşüâîû]/.test(w)) return null;
+  let rest = w; const segs = [];
+  // person / plural after a tense suffix
+  for(const p of PERSON){
+    if(!rest.endsWith(p)) continue;
+    const base = rest.slice(0, -p.length);
+    const m = base.match(TENSE_END); if(!m) continue;
+    if(p.length===1 && !/[dt][ıiuü]$/.test(base)) continue;
+    if(isV(p[0]) && /[dt][ıiuü]$/.test(base)) continue;
+    if(!harmonyOK(base,p)) continue;
+    if(base.length - m[0].length < 2) continue;
+    segs.unshift(p); rest = base; break;
+  }
+  // tense / aspect
+  let tensed = false;
+  for(const t of TENSE){
+    if(!rest.endsWith(t)) continue;
+    if(t.endsWith('ğ') && !segs.length) continue;
+    const stem = rest.slice(0, -t.length);
+    const min = (/^[dt]/.test(t) && isV(stem[stem.length-1]||'')) ? 3 : 2;
+    if(!fits(stem, t, min)) continue;
+    segs.unshift(t); rest = stem; tensed = true; break;
+  }
+  if(!tensed){
+    if(segs.length) return null;
+    for(const c of CASES){
+      if(!rest.endsWith(c)) continue;
+      const stem = rest.slice(0, -c.length);
+      const min = /^[yn]/.test(c) ? 3 : 2;
+      if(EXC.has(stem)) {}
+      if(!fits(stem, c, min)) continue;
+      segs.unshift(c); rest = stem; break;
+    }
+    for(const pl of ['lar','ler']){
+      if(rest.endsWith(pl)){
+        const stem = rest.slice(0,-3);
+        if(fits(stem, pl, 2)){ segs.unshift(pl); rest = stem; }
+        break;
+      }
+    }
+  }
+  if(!segs.length) return null;
+  return [rest, ...segs];
+}
+
+function applySuggestions(text){
+  let count = 0; const newSet = new Set();
+  const out = text.split('\n').map(line=>{
+    const p = parseLine(line);
+    if(!p || p.speaker!=='child') return line;
+    const parts = p.content.split(/(\([^)]*\))/);
+    const content = parts.map(part=>{
+      if(part.startsWith('(')) return part;
+      return part.replace(TOKEN_RE, tok=>{
+        if(/[-'’]/.test(tok) || /^x+$/i.test(tok)) return tok;
+        const s = suggest(tok); if(!s) return tok;
+        let pos = 0, res = '';
+        s.forEach((seg,i)=>{ if(i) res+='-'; res += tok.slice(pos, pos+seg.length); pos += seg.length; });
+        count++; newSet.add(lc(res));
+        return res;
+      });
+    }).join('');
+    const lead = line.match(/^\s*/)[0];
+    return lead + p.prefix + content;
+  });
+  return {text: out.join('\n'), count, newSet};
+}
+
+/* ---------- analysis ---------- */
+function analyze(text){
+  const lines = text.split('\n');
+  const items = []; let adult = 0, child = 0;
+  lines.forEach(l=>{
+    const p = parseLine(l); if(!p) return;
+    if(p.speaker==='adult'){ adult++; items.push({adult:true, code:p.code, content:p.content}); return; }
+    child++;
+    const u = analyzeUtt(p.content); u.n = child; items.push(u);
+  });
+  const inc = items.filter(i=>!i.adult && i.included);
+  const n = inc.length;
+  const words = inc.flatMap(u=>u.words);
+  const ntw = words.length;
+  const nMorph = inc.reduce((a,u)=>a+u.nMorph,0);
+  const forms = new Set(words.map(w=>w.segs.join('')));
+  const roots = new Set(words.map(w=>w.segs[0]));
+  const suf = new Map();
+  words.forEach(w=>w.segs.slice(1).forEach(s=>{
+    const k = canon(s);
+    if(!suf.has(k)) suf.set(k,{n:0, ex:new Set()});
+    const e = suf.get(k); e.n++; if(e.ex.size<3) e.ex.add(w.segs.join('-'));
+  }));
+  const lens = inc.map(u=>u.nMorph);
+  const sorted = [...lens].sort((a,b)=>b-a);
+  const top5 = sorted.slice(0,5);
+  return {
+    items, adult, child, n, excluded: child-n, ntw, nMorph,
+    mluW: n? ntw/n : NaN, mluM: n? nMorph/n : NaN,
+    ndw: forms.size, ndr: roots.size, ttr: ntw? forms.size/ntw : NaN,
+    longest: sorted[0]||0, mlu5: top5.length? top5.reduce((a,b)=>a+b,0)/top5.length : NaN,
+    mazes: items.filter(i=>!i.adult).reduce((a,u)=>a+u.mazes,0),
+    suffixes: [...suf.entries()].sort((a,b)=>b[1].n-a[1].n || a[0].localeCompare(b[0],'tr')),
+    bound: words.reduce((a,w)=>a+w.segs.length-1,0),
+    lens
+  };
+}
+
+/* ---------- render ---------- */
+function metric(label, value, note, hero){
+  return `<div class="metric${hero?' hero':''}"><span class="label">${label}</span><span class="v">${value}</span><span class="n">${note}</span></div>`;
+}
+function renderChart(lens){
+  const el = $('chart');
+  if(!lens.length){ el.innerHTML = '<div class="empty">Analiz edilecek söyleyiş yok.</div>'; return; }
+  const maxL = Math.max(6, ...lens);
+  const counts = Array.from({length:maxL},(_,i)=>lens.filter(l=>l===i+1).length);
+  const maxC = Math.max(1,...counts);
+  const W=600,H=190,pl=28,pr=8,pt=12,pb=30, iw=W-pl-pr, ih=H-pt-pb;
+  const bw = iw/maxL;
+  const step = maxC<=5?1:Math.ceil(maxC/5);
+  let g='';
+  for(let v=0; v<=maxC; v+=step){
+    const y = pt + ih - (v/maxC)*ih;
+    g += `<line x1="${pl}" x2="${W-pr}" y1="${y}" y2="${y}" stroke="var(--line)" stroke-width="1"/>`+
+         `<text x="${pl-6}" y="${y+4}" text-anchor="end" font-size="11" fill="var(--muted)" font-family="var(--f-mono)">${v}</text>`;
+  }
+  counts.forEach((c,i)=>{
+    const h=(c/maxC)*ih, x=pl+i*bw+bw*0.15, y=pt+ih-h;
+    if(c) g += `<rect x="${x}" y="${y}" width="${bw*0.7}" height="${h}" rx="3" fill="var(--accent)" opacity=".85"><title>${i+1} biçimbirim: ${c} söyleyiş</title></rect>`+
+               `<text x="${x+bw*0.35}" y="${y-4}" text-anchor="middle" font-size="11" fill="var(--fg)" font-family="var(--f-mono)">${c}</text>`;
+    g += `<text x="${pl+i*bw+bw/2}" y="${H-pb+16}" text-anchor="middle" font-size="11" fill="var(--muted)" font-family="var(--f-mono)">${i+1}</text>`;
+  });
+  g += `<text x="${pl+iw/2}" y="${H-2}" text-anchor="middle" font-size="11" fill="var(--muted)">söyleyiş uzunluğu</text>`;
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Söyleyiş uzunluğu dağılımı">${g}</svg>`;
+}
+function renderWord(w){
+  if(w.unk) return `<span class="unk">${esc(w.raw)}</span>`;
+  const parts = w.raw.split(/([-'’]+)/).filter(Boolean);
+  let html = ''; parts.forEach(p=>{ html += /^[-'’]+$/.test(p) ? `<span class="b">·</span>` : esc(p); });
+  const isSug = suggested.has(lc(w.raw).replace(/’/g,"'"));
+  return `<span class="w${isSug?' sug':''}">${html}</span>`;
+}
+function render(){
+  const r = analyze(tx.value); lastResult = r;
+  $('metrics').innerHTML =
+    metric('OSU · biçimbirim', fmt(r.mluM), `${r.nMorph} biçimbirim / ${r.n} söyleyiş`, true) +
+    metric('OSU · sözcük', fmt(r.mluW), `${r.ntw} sözcük / ${r.n} söyleyiş`) +
+    metric('En uzun söyleyiş', r.longest || '—', `En uzun 5 ort. ${fmt(r.mlu5)}`) +
+    metric('Farklı sözcük', r.ndw, 'Ayrı sözcük biçimi') +
+    metric('Farklı kök', r.ndr, 'Ek sınırından önceki kök') +
+    metric('Tür / belirteç', fmt(r.ttr), 'Farklı ÷ toplam sözcük');
+  $('countNote').textContent = `${r.n} analiz · ${r.excluded} dışarıda · ${r.adult} yetişkin · ${r.mazes} ara dolgu`;
+  const nl = tx.value.split('\n').filter(l=>l.trim()).length;
+  $('lineInfo').textContent = `${nl} satır · ${r.bound} ek sınırı`;
+  renderChart(r.lens);
+
+  const st = $('sufTable');
+  if(!r.suffixes.length){
+    st.innerHTML = '<tr><td class="empty">Henüz ek işaretlenmedi. Sözcüklerde ek sınırını tire ile gösterin ya da “Ek sınırlarını öner” düğmesini kullanın.</td></tr>';
+  } else {
+    const maxN = r.suffixes[0][1].n;
+    st.innerHTML = '<thead><tr><th>Ek</th><th>Örnekler</th><th style="text-align:right">Sayı</th></tr></thead><tbody>' +
+      r.suffixes.map(([k,v])=>`<tr><td>${esc(k)}<div class="bar" style="width:${Math.max(6,v.n/maxN*100)}%"></div></td><td class="ex">${[...v.ex].map(esc).join(', ')}</td><td class="num">${v.n}</td></tr>`).join('') + '</tbody>';
+  }
+
+  const ul = $('utts');
+  if(!r.items.length){ ul.innerHTML = '<div class="empty">Dökümü sol tarafa yapıştırın.</div>'; return; }
+  ul.innerHTML = r.items.map(u=>{
+    if(u.adult) return `<div class="utt"><span class="i">${esc(u.code)}</span><span class="t adult">${esc(u.content)}</span><span class="c"></span></div>`;
+    const maze = u.mazeText.length ? ` <span class="maze">(${u.mazeText.map(esc).join(') (')})</span>` : '';
+    const body = (maze + ' ' + u.words.map(renderWord).join(' ')).trim();
+    const why = u.reason ? `<span class="why">${u.reason}</span>` : '';
+    return `<div class="utt${u.included?'':' out'}"><span class="i">${u.n}</span><span class="t">${body || '—'}${why}</span><span class="c">${u.nWords} s · ${u.nMorph} b</span></div>`;
+  }).join('');
+}
+
+/* ---------- report, storage, events ---------- */
+function report(){
+  const r = lastResult || analyze(tx.value);
+  const v = id => $(id).value.trim() || '—';
+  const lines = [
+    'DİL ÖRNEĞİ ANALİZİ',
+    `Danışan: ${v('fCode')}   Yaş: ${v('fAge')}   Tarih: ${v('fDate')}`,
+    `Bağlam: ${v('fCtx')}`,'',
+    `Çocuk söyleyişi: ${r.child} (analiz edilen ${r.n}, dışarıda bırakılan ${r.excluded})`,
+    `OSU (biçimbirim): ${fmt(r.mluM)}`,
+    `OSU (sözcük): ${fmt(r.mluW)}`,
+    `En uzun söyleyiş: ${r.longest} biçimbirim · En uzun 5 ortalaması: ${fmt(r.mlu5)}`,
+    `Toplam sözcük: ${r.ntw} · Farklı sözcük: ${r.ndw} · Farklı kök: ${r.ndr}`,
+    `Tür/belirteç oranı: ${fmt(r.ttr)}`,
+    `Ara dolgu (maze): ${r.mazes}`,'',
+    'Ek dağılımı:',
+    ...(r.suffixes.length ? r.suffixes.map(([k,e])=>`  ${k}: ${e.n}  (${[...e.ex].join(', ')})`) : ['  —'])
+  ];
+  return lines.join('\n');
+}
+function save(){
+  try{ localStorage.setItem(STORE, JSON.stringify({tx:tx.value, f:fields.map(id=>$(id).value)})); }catch(e){}
+}
+function load(){
+  try{ const d = JSON.parse(localStorage.getItem(STORE)||'null'); if(d && typeof d.tx==='string'){ tx.value=d.tx; (d.f||[]).forEach((v,i)=>{ if($(fields[i])) $(fields[i]).value=v||''; }); return true; } }catch(e){}
+  return false;
+}
+function setSamplePill(){ $('samplePill').hidden = tx.value.trim() !== SAMPLE.trim(); }
+function toast(html, withUndo){
+  const t = $('toast'); t.innerHTML = html + (withUndo?' <button type="button" class="ghost" id="undoBtn">Geri al</button>':'');
+  t.hidden = false;
+  if(withUndo) $('undoBtn').onclick = ()=>{ if(undoText!==null){ tx.value = undoText; undoText=null; suggested=new Set(); t.hidden=true; update(); } };
+}
+let timer;
+function update(){ clearTimeout(timer); timer = setTimeout(()=>{ render(); save(); setSamplePill(); }, 120); }
+
+tx.addEventListener('input', ()=>{ $('toast').hidden = true; update(); });
+fields.forEach(id=>$(id).addEventListener('input', save));
+$('sugBtn').onclick = ()=>{
+  const res = applySuggestions(tx.value);
+  if(!res.count){ toast('Önerilecek yeni ek sınırı bulunamadı. Kalan ekleri tire ile elle işaretleyebilirsiniz.'); return; }
+  undoText = tx.value; tx.value = res.text;
+  res.newSet.forEach(s=>suggested.add(s));
+  render(); save(); setSamplePill();
+  toast(`<strong>${res.count} sözcüğe</strong> ek sınırı önerildi. Vurgulu sözcükleri sağdaki listede kontrol edin.`, true);
+};
+$('sampleBtn').onclick = ()=>{ undoText = tx.value; tx.value = SAMPLE; suggested = new Set(); render(); save(); setSamplePill(); toast('Örnek döküm yüklendi.', true); };
+$('clearBtn').onclick = ()=>{ undoText = tx.value; tx.value=''; suggested = new Set(); render(); save(); setSamplePill(); toast('Döküm temizlendi.', true); tx.focus(); };
+$('copyBtn').onclick = ()=>{
+  const text = report(), btn = $('copyBtn');
+  const done = ok => { btn.textContent = ok ? 'Kopyalandı' : 'Kopyalanamadı'; setTimeout(()=>btn.textContent='Raporu kopyala', 1800); };
+  try{
+    navigator.clipboard.writeText(text).then(()=>done(true), ()=>{ fallback(text); done(false); });
+  }catch(e){ fallback(text); done(false); }
+};
+function fallback(text){
+  toast('Panoya erişilemedi. Raporu aşağıdan seçip kopyalayın:');
+  const ta = document.createElement('textarea'); ta.value = text; ta.style.minHeight='200px'; ta.readOnly = true;
+  $('toast').appendChild(ta); ta.select();
+}
+
+/* ---------- audio transcription helper ---------- */
+const au = $('au'); let audioUrl = null;
+const mmss = t => { if(!isFinite(t)) t = 0; const m = Math.floor(t/60), s = Math.floor(t%60); return m + ':' + String(s).padStart(2,'0'); };
+function loadAudio(f){
+  if(!f) return;
+  const okType = /^(audio|video)\//.test(f.type) || /\.(mp3|m4a|wav|ogg|oga|opus|aac|webm|flac|mp4)$/i.test(f.name);
+  if(!okType){ toast('Bu dosya bir ses kaydı gibi görünmüyor. mp3, m4a, wav ya da ogg dosyası seçin.'); return; }
+  setAudio(f, f.name, true);
+}
+function setAudio(blob, name, persist){
+  if(audioUrl) URL.revokeObjectURL(audioUrl);
+  audioUrl = URL.createObjectURL(blob); au.src = audioUrl;
+  $('audioName').textContent = name; $('player').hidden = false; $('pickAudio').textContent = 'Başka dosya aç';
+  const dl = $('dlAudio'); dl.href = audioUrl; dl.setAttribute('download', name);
+  if(persist) idbPut({id:'last', blob, name});
+}
+/* last recording kept on device (IndexedDB) */
+function idb(){ return new Promise((res,rej)=>{ try{ const r = indexedDB.open('dil-ornegi', 1);
+  r.onupgradeneeded = ()=>r.result.createObjectStore('audio',{keyPath:'id'});
+  r.onsuccess = ()=>res(r.result); r.onerror = ()=>rej(r.error); }catch(e){ rej(e); } }); }
+async function idbPut(v){ try{ const d = await idb(); d.transaction('audio','readwrite').objectStore('audio').put(v); }catch(e){} }
+async function idbGet(){ try{ const d = await idb(); return await new Promise(res=>{ const q = d.transaction('audio').objectStore('audio').get('last'); q.onsuccess=()=>res(q.result||null); q.onerror=()=>res(null); }); }catch(e){ return null; } }
+idbGet().then(v=>{ if(v && v.blob && !au.src) setAudio(v.blob, v.name, false); });
+
+/* microphone recording */
+let rec = null, recTimer = null, wake = null;
+const stamp = () => { const d = new Date(), p = n => String(n).padStart(2,'0'); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}`; };
+async function holdWake(){ try{ wake = await navigator.wakeLock?.request('screen'); }catch(e){ wake = null; } }
+function dropWake(){ try{ wake?.release(); }catch(e){} wake = null; }
+$('recBtn').onclick = async ()=>{
+  const btn = $('recBtn');
+  if(rec && rec.state === 'recording'){ rec.stop(); return; }
+  if(!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.MediaRecorder)){
+    toast('Bu tarayıcı ses kaydını desteklemiyor. Telefonun ses kaydedicisiyle kaydedip “Ses dosyası aç” ile açabilirsiniz.'); return;
+  }
+  let stream;
+  try{ stream = await navigator.mediaDevices.getUserMedia({audio:true}); }
+  catch(e){ toast('Mikrofona erişilemedi. Telefon ayarlarından tarayıcıya ya da bu uygulamaya mikrofon izni verin.'); return; }
+  const types = ['audio/mp4','audio/webm;codecs=opus','audio/webm','audio/ogg'];
+  const type = types.find(t=>MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(t)) || '';
+  try{ rec = new MediaRecorder(stream, type ? {mimeType:type} : undefined); }
+  catch(e){ stream.getTracks().forEach(t=>t.stop()); toast('Kayıt başlatılamadı.'); return; }
+  const chunks = []; const start = Date.now();
+  rec.ondataavailable = e => { if(e.data && e.data.size) chunks.push(e.data); };
+  rec.onstop = ()=>{
+    stream.getTracks().forEach(t=>t.stop()); clearInterval(recTimer); dropWake();
+    const mt = rec.mimeType || type || 'audio/webm';
+    const ext = mt.includes('mp4') ? 'm4a' : mt.includes('ogg') ? 'ogg' : 'webm';
+    setAudio(new Blob(chunks,{type:mt}), `kayit-${stamp()}.${ext}`, true);
+    btn.textContent = '● Kaydet'; btn.classList.remove('recording'); $('recState').textContent = '';
+    rec = null; toast('Kayıt hazır ve bu cihazda saklandı. Dinleyerek dökümlemeye başlayabilirsiniz.');
+  };
+  au.pause(); rec.start(1000); holdWake();
+  btn.textContent = '■ Kaydı durdur'; btn.classList.add('recording');
+  recTimer = setInterval(()=>{ $('recState').textContent = 'Kaydediliyor ' + mmss((Date.now()-start)/1000); }, 500);
+};
+au.addEventListener('error', ()=>{ if(au.src) toast('Ses dosyası oynatılamadı. Kaydı mp3, m4a ya da wav olarak kaydedip yeniden deneyin.'); });
+function togglePlay(){
+  if(!au.src) return;
+  if(au.paused){ au.play().catch(()=>toast('Kayıt başlatılamadı. Oynat düğmesine bir kez tıklayıp yeniden deneyin.')); }
+  else { au.pause(); if($('autoBack').checked) au.currentTime = Math.max(0, au.currentTime - 2); }
+}
+const skip = d => { if(au.src) au.currentTime = Math.min(Math.max(0, au.currentTime + d), au.duration || 0); };
+au.addEventListener('play', ()=>$('play').textContent='Duraklat');
+au.addEventListener('pause', ()=>$('play').textContent='Oynat');
+['timeupdate','loadedmetadata','seeked'].forEach(ev=>au.addEventListener(ev, ()=>{
+  $('time').textContent = mmss(au.currentTime) + ' / ' + mmss(au.duration);
+  if(au.duration) $('seek').value = Math.round(au.currentTime/au.duration*1000);
+}));
+$('seek').addEventListener('input', e=>{ if(au.duration) au.currentTime = e.target.value/1000*au.duration; });
+$('pickAudio').onclick = ()=>$('fAudio').click();
+$('fAudio').addEventListener('change', e=>loadAudio(e.target.files[0]));
+$('play').onclick = togglePlay; $('back').onclick = ()=>skip(-3); $('fwd').onclick = ()=>skip(3);
+document.querySelectorAll('.speed button').forEach(b=>b.onclick = ()=>{
+  au.playbackRate = parseFloat(b.dataset.rate);
+  document.querySelectorAll('.speed button').forEach(x=>x.setAttribute('aria-pressed', String(x===b)));
+});
+const drop = $('drop');
+['dragenter','dragover'].forEach(ev=>drop.addEventListener(ev, e=>{ e.preventDefault(); drop.classList.add('over'); }));
+['dragleave','drop'].forEach(ev=>drop.addEventListener(ev, e=>{ e.preventDefault(); drop.classList.remove('over'); }));
+drop.addEventListener('drop', e=>loadAudio(e.dataTransfer.files[0]));
+function insertLine(prefix){
+  const s = tx.selectionStart ?? tx.value.length, before = tx.value.slice(0, s), after = tx.value.slice(tx.selectionEnd ?? s);
+  const lead = before && !before.endsWith('\n') ? '\n' : '';
+  tx.value = before + lead + prefix + after;
+  const pos = (before + lead + prefix).length;
+  tx.focus(); tx.setSelectionRange(pos, pos); update();
+}
+$('insC').onclick = ()=>insertLine('Ç: ');
+$('insT').onclick = ()=>insertLine('T: ');
+tx.addEventListener('keydown', e=>{ if(e.key==='Escape' && au.src){ e.preventDefault(); togglePlay(); } });
+
+if('serviceWorker' in navigator){ window.addEventListener('load', ()=>navigator.serviceWorker.register('sw.js').catch(()=>{})); }
+try{ navigator.storage?.persist?.(); }catch(e){}
+
+if(!load()){ tx.value = SAMPLE; }
+render(); setSamplePill();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+{
+  "name": "Türkçe Dil Örneği Analizi",
+  "short_name": "Dil Örneği",
+  "description": "Türkçe dil örneği analizi: OSU, sözcük çeşitliliği, ek dağılımı ve ses kaydıyla dökümleme.",
+  "lang": "tr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#eef3f6",
+  "theme_color": "#1d5d8a",
+  "categories": ["medical", "education", "productivity"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
